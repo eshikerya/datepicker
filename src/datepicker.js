@@ -84,6 +84,14 @@
     return typeOf(date) === 'date';
   }
 
+  function unique(src) {
+    var o = {};
+    src.forEach(function (k) {
+      o[k] = true;
+    })
+    return Object.keys(o);
+  }
+
   function toArray(obj, offset) {
     var args = [];
 
@@ -470,9 +478,11 @@
             disabled: false,
             highlighted: false
           };
-      var classes = [];
+      // var classes = [];
 
       $.extend(defaults, data);
+
+      var classes = defaults.classes || [];
 
       if (defaults.muted) {
         classes.push(options.mutedClass);
@@ -491,7 +501,7 @@
       }
 
       return (
-        '<' + itemTag + ' class="' + classes.join(' ') + '"' +
+        '<' + itemTag + ' class="' + unique(classes).join(' ') + '"' +
         (defaults.view ? ' data-view="' + defaults.view + '"' : '') +
         '>' +
         defaults.text +
@@ -528,6 +538,8 @@
       var disabledClass = options.disabledClass || '';
       var suffix = options.yearSuffix || '';
       var filter = $.isFunction(options.filter) && options.filter;
+      var classesFilter = $.isFunction(options.classes) && options.classes;
+      var classes = [];
       var startDate = this.startDate;
       var endDate = this.endDate;
       var viewDate = this.viewDate;
@@ -572,12 +584,17 @@
           isDisabled = filter.call(this.$element, date) === false;
         }
 
+        if (classesFilter) {
+          classes = classesFilter.call(this.$element, date);
+        }
+
         list += this.createItem({
           text: viewYear + i,
           view: isDisabled ? 'year disabled' : isPicked ? 'year picked' : 'year',
           muted: isMuted,
           picked: isPicked,
-          disabled: isDisabled
+          disabled: isDisabled,
+          classes: classes
         });
       }
 
@@ -594,6 +611,8 @@
       var disabledClass = options.disabledClass || '';
       var months = options.monthsShort;
       var filter = $.isFunction(options.filter) && options.filter;
+      var classesFilter = $.isFunction(options.classes) && options.classes;
+      var classes = [];
       var startDate = this.startDate;
       var endDate = this.endDate;
       var viewDate = this.viewDate;
@@ -628,12 +647,17 @@
           isDisabled = filter.call(this.$element, date) === false;
         }
 
+        if (classesFilter) {
+          classes = classesFilter.call(this.$element, date);
+        }
+
         list += this.createItem({
           index: i,
           text: months[i],
           view: isDisabled ? 'month disabled' : isPicked ? 'month picked' : 'month',
           picked: isPicked,
-          disabled: isDisabled
+          disabled: isDisabled,
+          classes: classes
         });
       }
 
@@ -652,6 +676,8 @@
       var months = options.monthsShort;
       var weekStart = parseInt(options.weekStart, 10) % 7;
       var filter = $.isFunction(options.filter) && options.filter;
+      var classesFilter = $.isFunction(options.classes) && options.classes;
+      var classes = [];
       var startDate = this.startDate;
       var endDate = this.endDate;
       var viewDate = this.viewDate;
@@ -722,12 +748,17 @@
           isDisabled = filter.call(this.$element, date) === false;
         }
 
+        if (classesFilter) {
+          classes = classesFilter.call(this.$element, date);
+        }
+
         prevItems.push(this.createItem({
           text: i,
           view: 'day prev',
           muted: true,
           disabled: isDisabled,
-          highlighted: prevViewYear === thisYear && prevViewMonth === thisMonth && date.getDate() === today
+          highlighted: prevViewYear === thisYear && prevViewMonth === thisMonth && date.getDate() === today,
+          classes: classes
         }));
       }
 
@@ -766,12 +797,17 @@
           isDisabled = filter.call(this.$element, date) === false;
         }
 
+        if (classesFilter) {
+          classes = classesFilter.call(this.$element, date);
+        }
+
         nextItems.push(this.createItem({
           text: i,
           view: 'day next',
           muted: true,
           disabled: isDisabled,
-          highlighted: nextViewYear === thisYear && nextViewMonth === thisMonth && date.getDate() === today
+          highlighted: nextViewYear === thisYear && nextViewMonth === thisMonth && date.getDate() === today,
+          classes: classes
         }));
       }
 
@@ -795,12 +831,17 @@
           isDisabled = filter.call(this.$element, date) === false;
         }
 
+        if (classesFilter) {
+          classes = classesFilter.call(this.$element, date);
+        }
+
         items.push(this.createItem({
           text: i,
           view: isDisabled ? 'day disabled' : isPicked ? 'day picked' : 'day',
           picked: isPicked,
           disabled: isDisabled,
-          highlighted: viewYear === thisYear && viewMonth === thisMonth && date.getDate() === today
+          highlighted: viewYear === thisYear && viewMonth === thisMonth && date.getDate() === today,
+          classes: classes
         }));
       }
 
@@ -1481,6 +1522,9 @@
 
     // Filter each date item (return `false` to disable a date item)
     filter: null,
+
+    // calculate classes list for each date
+    classesFilter: null,
 
     // Event shortcuts
     show: null,
