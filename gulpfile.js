@@ -130,7 +130,7 @@ gulp.task('docs', function () {
     .pipe(gulp.dest(scripts.docs));
 });
 
-gulp.task('release', ['test', 'docs']);
+gulp.task('release', ['js', 'css', 'docs']);
 
 gulp.task('watch', function () {
   gulp.watch(scripts.src, ['jscopy']);

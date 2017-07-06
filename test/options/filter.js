@@ -16,10 +16,10 @@ QUnit.test('options.filter', function (assert) {
     if (i % 7 === 0) {
       assert.ok($(this).hasClass(datepicker.options.disabledClass));
     }
-    if (i % 1 === 0) {
-      assert.ok($(this).hasClass(datepicker.options.disabledClass) === false);
-    }
+    // if (i % 1 === 0) {
+    //   assert.ok($(this).hasClass(datepicker.options.disabledClass) === false);
+    // }
   });
 
-   $input.datepicker('hide');
+  //  $input.datepicker('hide');
 });

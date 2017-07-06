@@ -1,11 +1,11 @@
 /*!
- * Datepicker v@VERSION
+ * Datepicker v0.5.4
  * https://github.com/fengyuanchen/datepicker
  *
- * Copyright (c) 2014-@YEAR Fengyuan Chen
+ * Copyright (c) 2014-2017 Fengyuan Chen
  * Released under the MIT license
  *
- * Date: @DATE
+ * Date: 2017-07-06T17:37:41.477Z
  */
 
 (function (factory) {
@@ -88,7 +88,7 @@
     var o = {};
     src.forEach(function (k) {
       o[k] = true;
-    })
+    });
     return Object.keys(o);
   }
 
@@ -196,7 +196,13 @@
       var endDate = options.endDate;
       var date = options.date;
 
-      this.$trigger = $(options.trigger);
+      this.$trigger = options.trigger && (
+          typeof(options.trigger) === 'string'
+            ? $this.find(options.trigger)
+            : options.trigger instanceof HTMLElement
+                ? $(options.trigger)
+                : options.trigger
+      ) || $(options.trigger);
       this.isInput = $this.is('input') || $this.is('textarea');
       this.isInline = options.inline && (options.container || !this.isInput);
       this.format = parseFormat(options.format);
@@ -425,7 +431,7 @@
       }
 
       var options = this.options;
-      var $this = this.$element;
+      var $this = this.options.trigger && this.$trigger || this.$element;
       var $picker = this.$picker;
       var containerWidth = $document.outerWidth();
       var containerHeight = $document.outerHeight();
@@ -478,7 +484,6 @@
             disabled: false,
             highlighted: false
           };
-      // var classes = [];
 
       $.extend(defaults, data);
 
@@ -539,13 +544,14 @@
       var suffix = options.yearSuffix || '';
       var filter = $.isFunction(options.filter) && options.filter;
       var classesFilter = $.isFunction(options.classes) && options.classes;
-      var classes = [];
       var startDate = this.startDate;
       var endDate = this.endDate;
       var viewDate = this.viewDate;
       var viewYear = viewDate.getFullYear();
       var viewMonth = viewDate.getMonth();
       var viewDay = viewDate.getDate();
+      var now = new Date();
+      var thisYear = now.getFullYear();
       var date = this.date;
       var year = date.getFullYear();
       var isPrevDisabled = false;
@@ -584,17 +590,14 @@
           isDisabled = filter.call(this.$element, date) === false;
         }
 
-        if (classesFilter) {
-          classes = classesFilter.call(this.$element, date);
-        }
-
         list += this.createItem({
           text: viewYear + i,
           view: isDisabled ? 'year disabled' : isPicked ? 'year picked' : 'year',
           muted: isMuted,
           picked: isPicked,
           disabled: isDisabled,
-          classes: classes
+          highlighted: date.getFullYear() === thisYear,
+          classes: classesFilter && classesFilter.call(this.$element, date)
         });
       }
 
@@ -612,12 +615,14 @@
       var months = options.monthsShort;
       var filter = $.isFunction(options.filter) && options.filter;
       var classesFilter = $.isFunction(options.classes) && options.classes;
-      var classes = [];
       var startDate = this.startDate;
       var endDate = this.endDate;
       var viewDate = this.viewDate;
       var viewYear = viewDate.getFullYear();
       var viewDay = viewDate.getDate();
+      var now = new Date();
+      var thisYear = now.getFullYear();
+      var thisMonth = now.getMonth();
       var date = this.date;
       var year = date.getFullYear();
       var month = date.getMonth();
@@ -647,17 +652,14 @@
           isDisabled = filter.call(this.$element, date) === false;
         }
 
-        if (classesFilter) {
-          classes = classesFilter.call(this.$element, date);
-        }
-
         list += this.createItem({
           index: i,
           text: months[i],
           view: isDisabled ? 'month disabled' : isPicked ? 'month picked' : 'month',
           picked: isPicked,
           disabled: isDisabled,
-          classes: classes
+          highlighted: viewYear === thisYear && date.getMonth() === thisMonth,
+          classes: classesFilter && classesFilter.call(this.$element, date)
         });
       }
 
@@ -677,7 +679,6 @@
       var weekStart = parseInt(options.weekStart, 10) % 7;
       var filter = $.isFunction(options.filter) && options.filter;
       var classesFilter = $.isFunction(options.classes) && options.classes;
-      var classes = [];
       var startDate = this.startDate;
       var endDate = this.endDate;
       var viewDate = this.viewDate;
@@ -738,6 +739,7 @@
 
       for (i = length - (n - 1); i <= length; i++) {
         date = new Date(prevViewYear, prevViewMonth, i);
+        isPicked = prevViewYear === year && prevViewMonth === month && i === day;
         isDisabled = false;
 
         if (startDate) {
@@ -748,17 +750,14 @@
           isDisabled = filter.call(this.$element, date) === false;
         }
 
-        if (classesFilter) {
-          classes = classesFilter.call(this.$element, date);
-        }
-
         prevItems.push(this.createItem({
           text: i,
           view: 'day prev',
           muted: true,
+          picked: isPicked,
           disabled: isDisabled,
           highlighted: prevViewYear === thisYear && prevViewMonth === thisMonth && date.getDate() === today,
-          classes: classes
+          classes: classesFilter && classesFilter.call(this.$element, date)
         }));
       }
 
@@ -787,6 +786,7 @@
 
       for (i = 1; i <= n; i++) {
         date = new Date(nextViewYear, nextViewMonth, i);
+        isPicked = nextViewYear === year && nextViewMonth === month && i === day;
         isDisabled = false;
 
         if (endDate) {
@@ -797,17 +797,14 @@
           isDisabled = filter.call(this.$element, date) === false;
         }
 
-        if (classesFilter) {
-          classes = classesFilter.call(this.$element, date);
-        }
-
         nextItems.push(this.createItem({
           text: i,
           view: 'day next',
           muted: true,
+          picked: isPicked,
           disabled: isDisabled,
           highlighted: nextViewYear === thisYear && nextViewMonth === thisMonth && date.getDate() === today,
-          classes: classes
+          classes: classesFilter && classesFilter.call(this.$element, date)
         }));
       }
 
@@ -831,17 +828,13 @@
           isDisabled = filter.call(this.$element, date) === false;
         }
 
-        if (classesFilter) {
-          classes = classesFilter.call(this.$element, date);
-        }
-
         items.push(this.createItem({
           text: i,
           view: isDisabled ? 'day disabled' : isPicked ? 'day picked' : 'day',
           picked: isPicked,
           disabled: isDisabled,
           highlighted: viewYear === thisYear && viewMonth === thisMonth && date.getDate() === today,
-          classes: classes
+          classes: classesFilter && classesFilter.call(this.$element, date)
         }));
       }
 
@@ -862,6 +855,7 @@
 
     click: function (e) {
       var $target = $(e.target);
+      var options = this.options;
       var viewDate = this.viewDate;
       var viewYear;
       var viewMonth;
@@ -873,9 +867,9 @@
       e.stopPropagation();
       e.preventDefault();
 
-      if ($target.hasClass('disabled')) {
-        return;
-      }
+      // if ($target.hasClass('disabled')) {
+      //   return;
+      // }
 
       viewYear = viewDate.getFullYear();
       viewMonth = viewDate.getMonth();
@@ -912,7 +906,6 @@
           break;
 
         case 'year current':
-
           if (this.format.hasYear) {
             this.showView(2);
           }
@@ -920,10 +913,12 @@
           break;
 
         case 'year picked':
-
           if (this.format.hasMonth) {
             this.showView(1);
           } else {
+            $target.addClass(options.pickedClass)
+              .siblings()
+                .removeClass(options.pickedClass);
             this.hideView();
           }
 
@@ -933,11 +928,14 @@
         case 'year':
           viewYear = parseInt($target.text(), 10);
           this.date = new Date(viewYear, viewMonth, min(viewDay, 28));
-          this.viewDate = new Date(viewYear, viewMonth, min(viewDay, 28));
 
           if (this.format.hasMonth) {
+            this.viewDate = new Date(viewYear, viewMonth, min(viewDay, 28));
             this.showView(1);
           } else {
+            $target.addClass(options.pickedClass)
+              .siblings()
+                .removeClass(options.pickedClass);
             this.hideView();
           }
 
@@ -952,7 +950,6 @@
           break;
 
         case 'month current':
-
           if (this.format.hasMonth) {
             this.showView(1);
           }
@@ -960,10 +957,12 @@
           break;
 
         case 'month picked':
-
           if (this.format.hasDay) {
             this.showView(0);
           } else {
+            $target.addClass(options.pickedClass)
+              .siblings()
+                .removeClass(options.pickedClass);
             this.hideView();
           }
 
@@ -971,13 +970,16 @@
           break;
 
         case 'month':
-          viewMonth = $.inArray($target.text(), this.options.monthsShort);
+          viewMonth = $.inArray($target.text(), options.monthsShort);
           this.date = new Date(viewYear, viewMonth, min(viewDay, 28));
-          this.viewDate = new Date(viewYear, viewMonth, min(viewDay, 28));
 
           if (this.format.hasDay) {
+            this.viewDate = new Date(viewYear, viewMonth, min(viewDay, 28));
             this.showView(0);
           } else {
+            $target.addClass(options.pickedClass)
+              .siblings()
+                .removeClass(options.pickedClass);
             this.hideView();
           }
 
@@ -990,8 +992,9 @@
           viewMonth = view === 'day prev' ? viewMonth - 1 : view === 'day next' ? viewMonth + 1 : viewMonth;
           viewDay = parseInt($target.text(), 10);
           this.date = new Date(viewYear, viewMonth, viewDay);
-          this.viewDate = new Date(viewYear, viewMonth, viewDay);
-          this.fillDays();
+          $target.addClass(options.pickedClass)
+            .siblings()
+              .removeClass(options.pickedClass);
 
           if (view === 'day') {
             this.hideView();
@@ -1001,6 +1004,9 @@
           break;
 
         case 'day picked':
+          $target.addClass(options.pickedClass)
+            .siblings()
+              .removeClass(options.pickedClass);
           this.hideView();
           this.pick('day');
           break;
@@ -1051,7 +1057,7 @@
           val = $this.text();
         }
       } else {
-        val = $this.text();
+        val = $this.data('timestamp');
       }
 
       return val;
@@ -1060,6 +1066,7 @@
     setValue: function (val) {
       var $this = this.$element;
 
+      var date = val;
       val = isString(val) ? val : '';
 
       if (this.isInput) {
@@ -1069,7 +1076,7 @@
           $this.text(val);
         }
       } else {
-        $this.text(val);
+        $this.data('timestamp', date.getTime());
       }
     },
 
@@ -1159,7 +1166,8 @@
         return;
       }
 
-      this.setValue(date = this.formatDate(this.date));
+      // this.setValue(date = this.formatDate(this.date));
+      this.setValue(date = this.date);
 
       if (this.isInput) {
         $this.trigger('change');
@@ -1320,6 +1328,8 @@
         return new Date(date.getFullYear(), date.getMonth(), date.getDate());
       } else if (isString(date)) {
         parts = date.match(REGEXP_DIGITS) || [];
+      } else if (isNumber(date)) {
+        return new Date(date);
       }
 
       date = new Date();
