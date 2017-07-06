@@ -58,6 +58,13 @@
       ].join(' ');
   var CLASS_HIDE = NAMESPACE + '-hide';
 
+  // Views
+  var VIEWS = {
+    DAYS: 0,
+    MONTHS: 1,
+    YEARS: 2
+  };
+
   // Maths
   var min = Math.min;
 
@@ -372,7 +379,7 @@
 
       if (format.hasYear || format.hasMonth || format.hasDay) {
         switch (Number(view)) {
-          case 2:
+          case VIEWS.YEARS:
           case 'years':
             $monthsPicker.addClass(CLASS_HIDE);
             $daysPicker.addClass(CLASS_HIDE);
@@ -382,12 +389,12 @@
               $yearsPicker.removeClass(CLASS_HIDE);
               this.place();
             } else {
-              this.showView(0);
+              this.showView(VIEWS.DAYS);
             }
 
             break;
 
-          case 1:
+          case VIEWS.MONTHS:
           case 'months':
             $yearsPicker.addClass(CLASS_HIDE);
             $daysPicker.addClass(CLASS_HIDE);
@@ -397,12 +404,12 @@
               $monthsPicker.removeClass(CLASS_HIDE);
               this.place();
             } else {
-              this.showView(2);
+              this.showView(VIEWS.YEARS);
             }
 
             break;
 
-          // case 0:
+          // case VIEWS.DAYS:
           // case 'days':
           default:
             $yearsPicker.addClass(CLASS_HIDE);
@@ -413,7 +420,7 @@
               $daysPicker.removeClass(CLASS_HIDE);
               this.place();
             } else {
-              this.showView(1);
+              this.showView(VIEWS.MONTHS);
             }
         }
       }
@@ -867,9 +874,9 @@
       e.stopPropagation();
       e.preventDefault();
 
-      // if ($target.hasClass('disabled')) {
-      //   return;
-      // }
+      if ($target.hasClass('disabled')) {
+        return;
+      }
 
       viewYear = viewDate.getFullYear();
       viewMonth = viewDate.getMonth();
@@ -892,7 +899,7 @@
           this.fillYears();
 
           if (isYear) {
-            this.showView(1);
+            this.showView(VIEWS.MONTHS);
             this.pick('year');
           }
 
@@ -907,14 +914,14 @@
 
         case 'year current':
           if (this.format.hasYear) {
-            this.showView(2);
+            this.showView(VIEWS.YEARS);
           }
 
           break;
 
         case 'year picked':
           if (this.format.hasMonth) {
-            this.showView(1);
+            this.showView(VIEWS.MONTHS);
           } else {
             $target.addClass(options.pickedClass)
               .siblings()
@@ -931,7 +938,7 @@
 
           if (this.format.hasMonth) {
             this.viewDate = new Date(viewYear, viewMonth, min(viewDay, 28));
-            this.showView(1);
+            this.showView(VIEWS.MONTHS);
           } else {
             $target.addClass(options.pickedClass)
               .siblings()
@@ -951,14 +958,14 @@
 
         case 'month current':
           if (this.format.hasMonth) {
-            this.showView(1);
+            this.showView(VIEWS.MONTHS);
           }
 
           break;
 
         case 'month picked':
           if (this.format.hasDay) {
-            this.showView(0);
+            this.showView(VIEWS.DAYS);
           } else {
             $target.addClass(options.pickedClass)
               .siblings()
@@ -975,7 +982,7 @@
 
           if (this.format.hasDay) {
             this.viewDate = new Date(viewYear, viewMonth, min(viewDay, 28));
-            this.showView(0);
+            this.showView(VIEWS.DAYS);
           } else {
             $target.addClass(options.pickedClass)
               .siblings()
@@ -992,9 +999,8 @@
           viewMonth = view === 'day prev' ? viewMonth - 1 : view === 'day next' ? viewMonth + 1 : viewMonth;
           viewDay = parseInt($target.text(), 10);
           this.date = new Date(viewYear, viewMonth, viewDay);
-          $target.addClass(options.pickedClass)
-            .siblings()
-              .removeClass(options.pickedClass);
+          this.viewDate = new Date(viewYear, viewMonth, viewDay);
+          this.fillDays();
 
           if (view === 'day') {
             this.hideView();
@@ -1004,9 +1010,6 @@
           break;
 
         case 'day picked':
-          $target.addClass(options.pickedClass)
-            .siblings()
-              .removeClass(options.pickedClass);
           this.hideView();
           this.pick('day');
           break;
@@ -1539,7 +1542,6 @@
     // Event shortcuts
     show: null,
     hide: null,
-    pick: null
   };
 
   Datepicker.setDefaults = function (options) {
