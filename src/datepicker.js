@@ -1,11 +1,11 @@
 /*!
- * Datepicker v@VERSION
+ * Datepicker v0.5.4
  * https://github.com/fengyuanchen/datepicker
  *
- * Copyright (c) 2014-@YEAR Fengyuan Chen
+ * Copyright (c) 2014-2017 Fengyuan Chen
  * Released under the MIT license
  *
- * Date: @DATE
+ * Date: 2017-07-06T22:08:49.646Z
  */
 
 (function (factory) {
@@ -334,7 +334,7 @@
           this.$trigger.on(EVENT_CLICK, $.proxy(this.toggle, this));
         } else if (this.isInput) {
           $this.on(EVENT_FOCUS, $.proxy(this.show, this));
-        } else {
+      } else if (!options.noClickEvent) {
           $this.on(EVENT_CLICK, $.proxy(this.show, this));
         }
       }
@@ -489,7 +489,8 @@
             muted: false,
             picked: false,
             disabled: false,
-            highlighted: false
+            highlighted: false,
+            isDayOff: false
           };
 
       $.extend(defaults, data);
@@ -510,6 +511,10 @@
 
       if (defaults.disabled) {
         classes.push(options.disabledClass);
+      }
+
+      if (defaults.isDayOff) {
+        classes.push(options.dayOffClass);
       }
 
       return (
@@ -666,6 +671,7 @@
           picked: isPicked,
           disabled: isDisabled,
           highlighted: viewYear === thisYear && date.getMonth() === thisMonth,
+          isDayOff: options.dayOffFilter && options.dayOffFilter.call(this.$element, date),
           classes: classesFilter && classesFilter.call(this.$element, date)
         });
       }
@@ -764,6 +770,7 @@
           picked: isPicked,
           disabled: isDisabled,
           highlighted: prevViewYear === thisYear && prevViewMonth === thisMonth && date.getDate() === today,
+          isDayOff: options.dayOffFilter && options.dayOffFilter.call(this.$element, date),
           classes: classesFilter && classesFilter.call(this.$element, date)
         }));
       }
@@ -811,6 +818,7 @@
           picked: isPicked,
           disabled: isDisabled,
           highlighted: nextViewYear === thisYear && nextViewMonth === thisMonth && date.getDate() === today,
+          isDayOff: options.dayOffFilter && options.dayOffFilter.call(this.$element, date),
           classes: classesFilter && classesFilter.call(this.$element, date)
         }));
       }
@@ -841,6 +849,7 @@
           picked: isPicked,
           disabled: isDisabled,
           highlighted: viewYear === thisYear && viewMonth === thisMonth && date.getDate() === today,
+          isDayOff: options.dayOffFilter && options.dayOffFilter.call(this.$element, date),
           classes: classesFilter && classesFilter.call(this.$element, date)
         }));
       }
@@ -1079,7 +1088,7 @@
           $this.text(val);
         }
       } else {
-        $this.data('timestamp', date.getTime());
+        date && $this.data('timestamp', date.getTime());
       }
     },
 
@@ -1097,7 +1106,7 @@
         return;
       }
 
-      if (this.trigger(EVENT_SHOW).isDefaultPrevented()) {
+      if (this.trigger(EVENT_SHOW, {pdata: this.options.data, picker: this}).isDefaultPrevented()) {
         return;
       }
 
@@ -1119,7 +1128,7 @@
         return;
       }
 
-      if (this.trigger(EVENT_HIDE).isDefaultPrevented()) {
+      if (this.trigger(EVENT_HIDE, {pdata: this.options.data, picker: this}).isDefaultPrevented()) {
         return;
       }
 
@@ -1161,10 +1170,15 @@
     pick: function (_view) {
       var $this = this.$element;
       var date = this.date;
+      var old = this.oldValue;
+      var data = this.options.data;
 
       if (this.trigger(EVENT_PICK, {
         view: _view || '',
-        date: date
+        date: date,
+        old: old,
+        pdata: data,
+        picker: this
       }).isDefaultPrevented()) {
         return;
       }
@@ -1269,6 +1283,7 @@
         }
 
         this.date = date;
+        this.oldValue = date.getTime();
         this.viewDate = new Date(date);
 
         if (!_isUpdated) {
@@ -1542,6 +1557,12 @@
     // Event shortcuts
     show: null,
     hide: null,
+    pick: null,
+
+    // DayOff class
+    dayOffClass: 'dayoff',
+    dayOffFilter: null,
+    dayOffSelectable: false
   };
 
   Datepicker.setDefaults = function (options) {
